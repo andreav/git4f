@@ -57,6 +57,13 @@
 
   ftrbr-done     = !git ftrbr-sidepush && git branch -d $(git rev-parse --symbolic-full-name --abbrev-ref @{-1})
 
+  ftrbr-rebase   = !git chk-intbr                                                   && \
+                    git pull                                                        && \
+                    git chk-back                                                    && \
+                    echo \"Rebasing $(git symbolic-ref -q HEAD) onto $(git intbr)\" && \
+                    git rebase $(git intbr)
+
+
 #configurations
 #[4f]
 #  int-br               = master
