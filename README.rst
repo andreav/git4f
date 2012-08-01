@@ -25,9 +25,13 @@ git4f main features are:
 
 * Zero installation procedure - just try these aliases! If you don't like them, just erase them.
 
-* Vincent Driessen's branching model supported
+* Vincent Driessen's branching model supported.
 
-* Multiple Parrallel Releases developing supported
+* Multiple Parrallel Releases developing supported.
+
+* 100% git native - nothing stored into your repo but aliases.
+
+* Configurable    - you can provide options to main operations to customize workflows as you prefer.
 
 ==================
 Requirements
