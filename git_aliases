@@ -1,3 +1,20 @@
+# Copyright (C) 2012 Andrea Valle
+#   
+# This file is part of git4f.
+# 
+# git4f is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# git4f is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with git4f.  If not, see <http://www.gnu.org/licenses/>.
+
 [alias]
   #get/set integartion branch
   intbr       = "!f() { if [ $# -eq 0 ] || [ $# -eq 1 ]; \
@@ -5,7 +22,7 @@
                         else echo \"Invalid input\" && exit 1; \
                         fi ;}; f"
 
-  #swithc aliases
+  #switch aliases
   chk-intbr     = "!git intbr 2>1 1>/dev/null && git checkout $(git intbr)"
   chk-back    = checkout @{-1}
 
