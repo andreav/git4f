@@ -55,6 +55,8 @@
 
   ftrbr-sidepush = !git ftrbr-integrate && echo \"Pushing $(git intbr) onto origin\" && git push origin $(git intbr)
 
+  ftrbr-done     = !git ftrbr-sidepush && git branch -d $(git rev-parse --symbolic-full-name --abbrev-ref @{-1})
+
 #configurations
 #[4f]
 #  int-br               = master
