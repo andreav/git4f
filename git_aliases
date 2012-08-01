@@ -1,0 +1,46 @@
+[alias]
+  #get/set integartion branch
+  intbr       = "!f() { if [ $# -eq 0 ] || [ $# -eq 1 ]; \
+                        then git config 4f.int-br $1; \
+                        else echo \"Invalid input\" && exit 1; \
+                        fi ;}; f"
+
+  #swithc aliases
+  chk-int     = "!git intbr 2>1 1>/dev/null && git checkout $(git intbr)"
+  chk-back    = checkout @{-1}
+
+  #feature branch mgt
+  ftrbr-start = "!f() { [ $# -ne 1 ] && echo \"Missing br name\" && exit 1; \
+                         br_int=$(git intbr) || { echo \"int-br not set\" && exit 1 ;}; \
+                         br_ftr_pre=$(git config --get 4f.ftrbr-prefix) 2>/dev/null; \
+                         git checkout $br_int && \
+                         echo \"Pulling $(git intbr)\" && \
+                         git pull && \
+                         echo \"Creating new ftr branch\" && \
+                         git checkout -b ${br_ftr_pre}$1 \
+                       ;}; f"
+
+  ftrbr-sidepull = !git intbr 2>1 1>/dev/null || (echo \"int-br not set\" && exit 1) && \
+                     git chk-int   && \
+                     git pull     && \
+                     git chk-back  && \
+                     echo Merging $(git intbr) into current branch && \
+                     git merge $(git config --get 4f.ftrbr-pull-merge-opt) $(git intbr)
+
+  ftrbr-integrate = "!f() { br_start=$(git symbolic-ref -q HEAD) || { echo \"Cannot exec from detached-head\" && exit 1 ;}; \
+                             git intbr 2>1 1>/dev/null       || { echo \"int-br not set\" && exit 1 ;}; \
+                             git chk-int                                    && \
+                             echo \"Pulling $(git intbr)\"            && \
+                             git pull                                      && \
+                             echo Merging $br_start into $(git intbr) && \
+                             git merge $(git config --get 4f.ftrbr-push-merge-opt) $br_start \
+                            ;}; f"
+
+  ftrbr-sidepush = !git ftrbr-integrate && echo \"Pushing $(git intbr) onto origin\" && git push origin $(git intbr)
+
+#configurations
+#[4f]
+#  int-br               = master
+#  ftrbr-prefix         = ftr/
+#  ftrbr-pull-merge-opt = --no-ff
+#  ftrbr-push-merge-opt = 
