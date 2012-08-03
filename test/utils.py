@@ -24,7 +24,11 @@ DIR_TEST_ROOT = os.path.abspath(os.path.dirname(__file__))
 DIR_SANDBOX   = os.path.join(DIR_TEST_ROOT, 'sandbox')
 DIR_REPO_BASE = os.path.join(DIR_SANDBOX,'repo')
 DIR_REPO_CLONE_INTBR = os.path.join(DIR_SANDBOX,'clone.intbr')
-FILE_REPO_BASE = 'a.txt'
+DIR_REPO_CLONE_FTRBR = os.path.join(DIR_SANDBOX,'clone.ftrbr')
+FILE_REPO_BASE       = 'a.txt'
+CFG_FTR_PREFIX         = '4f.ftrbr-prefix'
+CFG_FTR_PULL_MERGE_OPT = '4f.ftrbr-pull-merge-opt'
+CFG_FTR_PUSH_MERGE_OPT = '4f.ftrbr-push-merge-opt'
 
 # EXCEPTIONS ##################
 class FailedCommand(Exception): pass
@@ -39,9 +43,7 @@ def touch(fname, times = None):
 def check_fname(f):
     #if not os.path.exists(f):
     #    raise FileNotExists(f)
-    if f.find('/sandbox') == -1:
-        raise FileNotInSandbox(f)
-    pass
+    nt.assert_in('/sandbox', f)
 
 # GIT MGT #####################
 def exe_cmd(cmd, adir, mustsucc=None):
@@ -57,7 +59,10 @@ def exe_cmd(cmd, adir, mustsucc=None):
     if mustsucc == False:
         nt.assert_not_equal(rc, 0, 'Must fail command: cd %s && %s' % (adir, cmd))
 
-    return so, se, rc
+    if so.strip() != '': print ' -SO- ', so.strip()
+    if se.strip() != '': print ' -SE- ', se.strip()
+
+    return so.strip(), se.strip(), rc
 
 class Repo:
     def __init__(self, root):
@@ -104,10 +109,9 @@ def create_arepo(adir, afile):
     shutil.rmtree(tbddir,ignore_errors=True)
 
 def clone_arepo(adir, clonedir):
+    check_fname(clonedir)
+    shutil.rmtree(clonedir,ignore_errors=True)
     cmd_clone = 'git clone %s %s' % (adir, clonedir)
-    exe_cmd( cmd_clone, DIR_SANDBOX )
+    exe_cmd( cmd_clone, DIR_SANDBOX, mustsucc=True )
     nt.assert_true(os.path.exists(clonedir), 'Not cloned %s' % clonedir)
-
-#so = subprocess.Popen( cmd1.split(), stdout=subprocess.PIPE, close_fds=True).stdout
-#print [ l.strip() for l in so.readlines() ]
 

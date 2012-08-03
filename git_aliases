@@ -17,18 +17,23 @@
 
 [alias]
   #get/set integration branch
-  intbr       = "!f() { if [ $# -eq 0 ] || [ $# -eq 1 ]; \
-                        then git config 4f.intbr $1; \
-                        else echo \"Invalid input\" && exit 1; \
-                        fi ;}; f"
+  intbr       = "!f() { [ $# -eq 0 ] && { git config 4f.intbr && exit $? || exit $? ;}; \
+                        [ $# -eq 1 ] &&                                                 \
+                          {                                                             \
+                            $( git show-ref --quiet --verify -- \"refs/heads/$1\" ) &&  \
+                                { git config 4f.intbr $1 && exit $? || exit $? ;}   ||  \
+                                { echo Not a valid branch refs/heads/$1 >&2 && exit 1 ;};   \
+                          };                                                            \
+                        [ $# -gt 1 ] && { echo Too many parameters >&2 && exit 1 ;};        \
+                      }; f"
 
   #switch aliases
   chk-intbr     = "!git intbr 2>1 1>/dev/null && git checkout $(git intbr)"
   chk-back    = checkout @{-1}
 
   #feature branch mgt
-  ftrbr-start = "!f() { [ $# -ne 1 ] && echo \"Missing br name\" && exit 1; \
-                         br_int=$(git intbr) || { echo \"Integration branch not set\" && exit 1 ;}; \
+  ftrbr-start = "!f() { [ $# -ne 1 ] && echo \"Missing br name\" >&2 && exit 1; \
+                         br_int=$(git intbr) || { echo \"Integration branch not set\" >&2 && exit 1 ;}; \
                          br_ftr_pre=$(git config --get 4f.ftrbr-prefix) 2>/dev/null; \
                          git checkout $br_int             && \
                          echo \"Pulling $(git intbr)\"    && \
@@ -37,15 +42,15 @@
                          git checkout -b ${br_ftr_pre}$1 \
                        ;}; f"
 
-  ftrbr-sidepull = !git intbr 2>1 1>/dev/null || (echo \"Integration branch not set\" && exit 1) && \
+  ftrbr-sidepull = !git intbr 2>1 1>/dev/null || (echo Integration branch not set >&2 && exit 1) && \
                      git chk-intbr   && \
                      git pull     && \
                      git chk-back  && \
                      echo Merging $(git intbr) into current branch && \
                      git merge $(git config --get 4f.ftrbr-pull-merge-opt) $(git intbr)
 
-  ftrbr-integrate = "!f() { br_start=$(git symbolic-ref -q HEAD) || { echo \"Cannot exec from detached-head\" && exit 1 ;}; \
-                             git intbr 2>1 1>/dev/null           || { echo \"Integration branch not set\" && exit 1 ;}; \
+  ftrbr-integrate = "!f() { br_start=$(git symbolic-ref -q HEAD) || { echo Cannot exec from detached-head >&2 && exit 1 ;}; \
+                             git intbr 2>1 1>/dev/null           || { echo Integration branch not set >&2 && exit 1 ;}; \
                              git chk-intbr                            && \
                              echo \"Pulling $(git intbr)\"            && \
                              git pull                                 && \

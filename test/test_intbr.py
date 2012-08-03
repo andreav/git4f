@@ -20,7 +20,7 @@ import utils
 import nose.tools as nt
 
 def setUpModule():
-    print '> setUpModule'
+    print '> setUpModule test_intbr'
     utils.sandbox()
 
 def test_intbr_get():
@@ -30,7 +30,7 @@ def test_intbr_get():
     utils.clone_arepo(oriR.dir(), cloR.dir())
 
     so,se,rc = cloR.exe_cmd_deny('git intbr')
-    nt.eq_(so.strip(), '')
+    nt.eq_(so, '')
 
 def test_intbr_set():
     oriR = utils.Repo(utils.DIR_REPO_BASE)
@@ -39,13 +39,13 @@ def test_intbr_set():
     utils.clone_arepo(oriR.dir(), cloR.dir())
 
     so,se,rc = cloR.exe_cmd_succ('git intbr master')
-    nt.eq_(so.strip(), '')
+    nt.eq_(so, '')
 
     so,se,rc = cloR.exe_cmd_succ('git intbr')
-    nt.eq_(so.strip(), 'master')
+    nt.eq_(so, 'master')
 
     so,se,rc = cloR.exe_cmd_succ('git config --get 4f.intbr')
-    nt.eq_(so.strip(), 'master')
+    nt.eq_(so, 'master')
 
 def test_intbr_set_on_set():
     oriR = utils.Repo(utils.DIR_REPO_BASE)
@@ -58,13 +58,13 @@ def test_intbr_set_on_set():
 
     #already tested first intbr set
     so,se,rc = cloR.exe_cmd_succ('git intbr master')
-    nt.eq_(so.strip(), '')
+    nt.eq_(so, '')
 
     so,se,rc = cloR.exe_cmd_succ('git intbr')
-    nt.eq_(so.strip(), 'master')
+    nt.eq_(so, 'master')
 
     so,se,rc = cloR.exe_cmd_succ('git config --get 4f.intbr')
-    nt.eq_(so.strip(), 'master')
+    nt.eq_(so, 'master')
 
 def test_intbr_set_on_set_different():
     oriR = utils.Repo(utils.DIR_REPO_BASE)
@@ -79,11 +79,11 @@ def test_intbr_set_on_set_different():
     so,se,rc = cloR.exe_cmd_succ('git checkout -b another')
 
     so,se,rc = cloR.exe_cmd_succ('git intbr another')
-    nt.eq_(so.strip(), '')
+    nt.eq_(so, '')
 
     so,se,rc = cloR.exe_cmd_succ('git intbr')
-    nt.eq_(so.strip(), 'another')
+    nt.eq_(so, 'another')
 
     so,se,rc = cloR.exe_cmd_succ('git config --get 4f.intbr')
-    nt.eq_(so.strip(), 'another')
+    nt.eq_(so, 'another')
 
