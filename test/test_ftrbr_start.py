@@ -91,3 +91,42 @@ def test_ftrbr_start_intbr_onlylocal():
     nt.assert_in("Creating new ftr branch starting from 'onlylocal'", so)
     nt.assert_in("Switched to a new branch 'aaa'", se)
 
+def test_ftrbr_start_conflict():
+    oriR = utils.Repo(utils.DIR_REPO_BASE)
+    cloR = utils.Repo(utils.DIR_REPO_CLONE_FTRBR)
+    utils.clone_arepo(oriR.dir(), cloR.dir())
+
+    utils.edit_commit(oriR, 'on origin')
+    so,se,rc = cloR.exe_cmd_succ('git checkout master')
+    utils.edit_commit(cloR, 'on clone')
+
+    so,se,rc = cloR.exe_cmd_succ('git intbr master')
+
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-start aaa')
+    nt.assert_in("Pulling 'master'",                            so)
+    nt.assert_in("CONFLICT (content): Merge conflict in a.txt", so)
+    nt.assert_not_in("Intbr 'master' not tracked, jump pull.",  so)
+    nt.assert_not_in("Creating new ftr branch starting from 'master'", so)
+
+def test_ftrbr_start_during_conflict():
+    oriR = utils.Repo(utils.DIR_REPO_BASE)
+    cloR = utils.Repo(utils.DIR_REPO_CLONE_FTRBR)
+    utils.clone_arepo(oriR.dir(), cloR.dir())
+
+    utils.edit_commit(oriR, 'on origin')
+    so,se,rc = cloR.exe_cmd_succ('git checkout master')
+    utils.edit_commit(cloR, 'on clone')
+
+    so,se,rc = cloR.exe_cmd_succ('git intbr master')
+
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-start aaa')
+    nt.assert_in("Pulling 'master'",                            so)
+    nt.assert_in("CONFLICT (content): Merge conflict in a.txt", so)
+    nt.assert_not_in("Intbr 'master' not tracked, jump pull.",  so)
+    nt.assert_not_in("Creating new ftr branch starting from 'master'", so)
+
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-start aaa')
+    nt.assert_in("a.txt: needs merge", so)
+    nt.assert_in("error: you need to resolve your current index first", se)
+
+

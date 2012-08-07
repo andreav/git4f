@@ -29,9 +29,13 @@ git4f main features are:
 
 * Multiple Parrallel Releases developing supported.
 
+* Shared topic branch supported.
+
 * 100% git native - nothing stored into your repo but aliases.
 
 * Configurable    - you can provide options to main operations to customize workflows as you prefer.
+
+Please checkout all supported workflows_ at project Wiki_!
 
 ==================
 Requirements
@@ -77,4 +81,7 @@ git4f is released under the GPLv3:
 
   http://www.gnu.org/licenses/gpl-3.0-standalone.html
 
+
+.. _Wiki: http://github.com/andreav/git4f/wiki
+.. _workflows: http://github.com/andreav/git4f/wiki/Workflows
 
