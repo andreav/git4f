@@ -16,15 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with git4f.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, shutil, subprocess
+import os, shutil, subprocess, sys
 import shlex
 import nose.tools as nt
 
 DIR_TEST_ROOT = os.path.abspath(os.path.dirname(__file__))
 DIR_SANDBOX   = os.path.join(DIR_TEST_ROOT, 'sandbox')
 DIR_REPO_BASE = os.path.join(DIR_SANDBOX,'repo')
+DIR_REPO_BASE_DELETE = os.path.join(DIR_SANDBOX,'repo.delete')
 DIR_REPO_CLONE_INTBR = os.path.join(DIR_SANDBOX,'clone.intbr')
 DIR_REPO_CLONE_FTRBR = os.path.join(DIR_SANDBOX,'clone.ftrbr')
+DIR_REPO_CLONE_FTRBR_INTEGRATE = os.path.join(DIR_SANDBOX,'clone.ftrbr.integrate')
+DIR_REPO_CLONE_FTRBR_UPDATE    = os.path.join(DIR_SANDBOX,'clone.ftrbr.update')
+DIR_REPO_CLONE_FTRBR_PUSH      = os.path.join(DIR_SANDBOX,'clone.ftrbr.push')
 FILE_REPO_BASE       = 'a.txt'
 CFG_FTR_PREFIX         = '4f.ftrbr-prefix'
 CFG_FTR_PULL_MERGE_OPT = '4f.ftrbr-pull-merge-opt'
@@ -39,6 +43,38 @@ class FileNotInSandbox(Exception): pass
 def touch(fname, times = None):
     with file(fname, 'a'):
         os.utime(fname, times)
+def append(fname, cont = None):
+    with file(fname, 'a') as fobj:
+        print (' -C- (%s)' % os.path.basename(os.path.dirname(fname))).ljust(18), 'append'
+        fobj.write(cont+'\n' if cont else 'default msg\n')
+
+def clone_makebr_edit_commit_repo(repodir, intbr='master', ftrbr='work'):
+    oriR, cloR = clone_arepo(DIR_REPO_BASE, repodir)
+    so,se,rc = cloR.exe_cmd_succ('git intbr %s' % intbr)
+    makebr_edit_commit(cloR, ftrbr)
+    return oriR, cloR
+
+def makebr_edit_commit(repoobj, brname='work', filecont='some content'):
+    so,se,rc = repoobj.exe_cmd_succ('git config --local %s ftr/' % CFG_FTR_PREFIX )
+    so,se,rc = repoobj.exe_cmd_succ('git ftrbr-start %s' % brname)
+    edit_commit(repoobj)
+
+def edit_commit(repoobj, msg = 'something', afile = FILE_REPO_BASE):
+    #bare repo must be edited by clone repo
+    onori = False
+    if os.path.abspath(repoobj.dir()) == os.path.abspath(DIR_REPO_BASE):
+        onori = True
+        shutil.rmtree(DIR_REPO_BASE_DELETE,ignore_errors=True)
+        oriR, repoobj = clone_arepo(DIR_REPO_BASE, DIR_REPO_BASE_DELETE)
+        repoobj.exe_cmd_succ('git checkout master')
+    #edit, commit
+    afile = os.path.join(repoobj.dir(), afile)
+    append(afile, msg)
+    repoobj.exe_cmd('git add %s' % afile)
+    repoobj.exe_cmd('git commit -m "modified file"')
+    #bare, must push
+    if onori:
+        repoobj.exe_cmd('git push origin master')
 
 def check_fname(f):
     #if not os.path.exists(f):
@@ -48,6 +84,8 @@ def check_fname(f):
 # GIT MGT #####################
 def exe_cmd(cmd, adir, mustsucc=None):
     print (' -C- (%s)'%os.path.basename(adir)).ljust(18), cmd
+    #sys.stdout.flush()
+    #sys.stderr.flush()
 
     #return subprocess.call(shlex.split(cmd), stdout=None, cwd=adir)
     po = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, cwd=adir)
@@ -99,13 +137,12 @@ def create_arepo(adir, afile):
     #clone, populate, push, destroy
     tbddir  = adir + '.tbd'
     tbdfile = os.path.join(tbddir, afile)
-    tbdRepo = Repo(tbddir)
 
-    clone_arepo(adir, tbddir)
+    oriR, cloR = clone_arepo(adir, tbddir)
     touch(tbdfile)
-    tbdRepo.exe_cmd('git add %s' % afile)
-    tbdRepo.exe_cmd('git commit -m "first commit"')
-    tbdRepo.exe_cmd('git push origin master')
+    cloR.exe_cmd('git add %s' % afile)
+    cloR.exe_cmd('git commit -m "first commit"')
+    cloR.exe_cmd('git push origin master')
     shutil.rmtree(tbddir,ignore_errors=True)
 
 def clone_arepo(adir, clonedir):
@@ -114,4 +151,5 @@ def clone_arepo(adir, clonedir):
     cmd_clone = 'git clone %s %s' % (adir, clonedir)
     exe_cmd( cmd_clone, DIR_SANDBOX, mustsucc=True )
     nt.assert_true(os.path.exists(clonedir), 'Not cloned %s' % clonedir)
+    return Repo(adir), Repo(clonedir)
 

@@ -87,3 +87,71 @@ def test_intbr_set_on_set_different():
     so,se,rc = cloR.exe_cmd_succ('git config --get 4f.intbr')
     nt.eq_(so, 'another')
 
+def test_intbr_unset_different():
+    oriR = utils.Repo(utils.DIR_REPO_BASE)
+    cloR = utils.Repo(utils.DIR_REPO_CLONE_INTBR)
+    utils.clone_arepo(oriR.dir(), cloR.dir())
+    so,se,rc = cloR.exe_cmd_succ('git intbr master')
+
+    so,se,rc = cloR.exe_cmd_succ('git intbr-unset')
+
+    so,se,rc = cloR.exe_cmd_deny('git intbr')
+    nt.eq_(so, '')
+    nt.eq_(se, 'Integration branch not set')
+
+    so,se,rc = cloR.exe_cmd_deny('git config --get 4f.intbr')
+    nt.eq_(so, '')
+    nt.eq_(se, '')
+
+def test_intbr_unset_different_onearg():
+    oriR = utils.Repo(utils.DIR_REPO_BASE)
+    cloR = utils.Repo(utils.DIR_REPO_CLONE_INTBR)
+    utils.clone_arepo(oriR.dir(), cloR.dir())
+    so,se,rc = cloR.exe_cmd_succ('git intbr master')
+
+    #pass one param more
+    so,se,rc = cloR.exe_cmd_succ('git intbr-unset master')
+    so,se,rc = cloR.exe_cmd_deny('git intbr')
+    nt.eq_(so, '')
+    nt.eq_(se, 'Integration branch not set')
+
+    so,se,rc = cloR.exe_cmd_deny('git config --get 4f.intbr')
+    nt.eq_(so, '')
+    nt.eq_(se, '')
+
+def test_intbr_istracked():
+    oriR = utils.Repo(utils.DIR_REPO_BASE)
+    cloR = utils.Repo(utils.DIR_REPO_CLONE_INTBR)
+    utils.clone_arepo(oriR.dir(), cloR.dir())
+
+    #just cloned, no intbr, unset scenario
+    so,se,rc = cloR.exe_cmd_deny('git intbr-istracked')
+    nt.eq_(so, '')
+    nt.eq_(se, 'Integration branch not set')
+
+    #tracked scenario
+    so,se,rc = cloR.exe_cmd_succ('git intbr master')
+
+    so,se,rc = cloR.exe_cmd_succ('git intbr-istracked')
+    nt.eq_(so, 'master <- origin/master')
+    nt.eq_(se, '')
+
+    so,se,rc = cloR.exe_cmd_succ('git intbr-unset')
+
+    so,se,rc = cloR.exe_cmd_deny('git intbr-istracked')
+    nt.eq_(so, '')
+    nt.eq_(se, 'Integration branch not set')
+
+    #untracked scenario
+    so,se,rc = cloR.exe_cmd_succ('git checkout -b another master')
+    so,se,rc = cloR.exe_cmd_succ('git intbr another')
+
+    so,se,rc = cloR.exe_cmd_deny('git intbr-istracked')
+    nt.eq_(so, '')
+    nt.eq_(se, "Integration branch 'another' not tracked")
+
+    #one param more ... ignored
+    so,se,rc = cloR.exe_cmd_succ('git intbr master')
+    so,se,rc = cloR.exe_cmd_succ('git intbr-istracked aaa')
+    nt.eq_(so, 'master <- origin/master')
+    nt.eq_(se, '')

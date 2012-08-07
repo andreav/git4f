@@ -32,7 +32,7 @@ def test_ftrbr_start_nointbr():
     so,se,rc = cloR.exe_cmd_deny('git intbr')
 
     #when not set, it fails ... no check ret code
-    so,se,rc = cloR.exe_cmd('git config --local --unset %s' % utils.CFG_FTR_PREFIX )
+    so,se,rc = cloR.exe_cmd('git intbr-unset %s' % utils.CFG_FTR_PREFIX )
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-start aaa')
     nt.eq_(so, '')
     nt.eq_(se, 'Integration branch not set')
@@ -50,8 +50,8 @@ def test_ftrbr_start_intbr_tracked_prefix_notset():
     so,se,rc = cloR.exe_cmd('git config --local --unset %s' % utils.CFG_FTR_PREFIX )
 
     so,se,rc = cloR.exe_cmd_succ('git ftrbr-start aaa')
-    nt.assert_in('Pulling master', so)
-    nt.assert_in('Creating new ftr branch', so)
+    nt.assert_in("Pulling 'master'", so)
+    nt.assert_in("Creating new ftr branch", so)
     nt.assert_in("Switched to a new branch 'aaa'", se)
 
 def test_ftrbr_start_intbr_tracked_prefix_empty():
@@ -62,8 +62,8 @@ def test_ftrbr_start_intbr_tracked_prefix_empty():
     so,se,rc = cloR.exe_cmd('git config --local %s ""' % utils.CFG_FTR_PREFIX )
 
     so,se,rc = cloR.exe_cmd_succ('git ftrbr-start aaa')
-    nt.assert_in('Pulling master', so)
-    nt.assert_in('Creating new ftr branch', so)
+    nt.assert_in("Pulling 'master'", so)
+    nt.assert_in("Creating new ftr branch", so)
     nt.assert_in("Switched to a new branch 'aaa'", se)
 
 def test_ftrbr_start_intbr_tracked_prefix_set():
@@ -74,8 +74,8 @@ def test_ftrbr_start_intbr_tracked_prefix_set():
     so,se,rc = cloR.exe_cmd('git config --local %s ftr/' % utils.CFG_FTR_PREFIX )
 
     so,se,rc = cloR.exe_cmd_succ('git ftrbr-start aaa')
-    nt.assert_in('Pulling master', so)
-    nt.assert_in('Creating new ftr branch', so)
+    nt.assert_in("Pulling 'master'", so)
+    nt.assert_in("Creating new ftr branch", so)
     nt.assert_in("Switched to a new branch 'ftr/aaa'", se)
 
 def test_ftrbr_start_intbr_onlylocal():
@@ -87,3 +87,7 @@ def test_ftrbr_start_intbr_onlylocal():
 
     #should skip pull
     so,se,rc = cloR.exe_cmd_succ('git ftrbr-start aaa')
+    nt.assert_in("Intbr 'onlylocal' not tracked, jump pull.", so)
+    nt.assert_in("Creating new ftr branch starting from 'onlylocal'", so)
+    nt.assert_in("Switched to a new branch 'aaa'", se)
+
