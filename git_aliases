@@ -28,80 +28,70 @@
                               { echo Integration branch \\'$br_int\\' not tracked >&2 && exit 1 ;} ; \
                             echo \"$br_int <- $u\"; \
                           }; f"
-
+  intbr-pull = "!f() { git chk-intbr || exit 1;                                        \
+                       d=$(git intbr-istracked 2>&1) &&                                \
+                         { echo Pulling \\'$(git intbr)\\' && git pull || exit $?;} || \
+                         { echo Intbr \\'$(git intbr)\\' not tracked, jump pull. ;}    \
+                     }; f"
+  intbr-push = "!f() { git chk-intbr            || exit 1;                               \
+                       d=$(git intbr-istracked) || { echo Cannot push. >&2 && exit 1 ;}; \
+                       remote=$(git config --get branch.$(git intbr).remote);            \
+                       echo Pushing \\'$(git intbr)\\' to \\'$remote\\';                 \
+                       git push $remote $(git intbr);                                    \
+                     }; f"
+  #
   #switch aliases
   chk-intbr   = "!git intbr 1>/dev/null && git checkout $(git intbr)"
   chk-back    = checkout @{-1}
 
-  currbr      = "!f() { currbr=$(git symbolic-ref -q HEAD) || { echo 'detached-head' && exit 1 ;}; \
-                        currbr=$(git rev-parse --symbolic-full-name --abbrev-ref $currbr);         \
-                        echo $currbr;                                                              \
+  currbr      = "!f() { currbr=$(git symbolic-ref -q HEAD) || { echo detached-head && exit 1 ;}; \
+                        currbr=$(git rev-parse --symbolic-full-name --abbrev-ref $currbr);       \
+                        echo $currbr;                                                            \
                       }; f"
 
   #feature branch mgt
   ftrbr-start = "!f() { [ $# -ne 1 ] && echo \"Usage: git ftrbr-start <brname>\" >&2 && exit 2; \
-                         br_int=$(git intbr) || exit 1;                                         \
                          br_ftr_pre=$(git config --get 4f.ftrbr-prefix) 2>/dev/null;            \
-                         git chk-intbr || exit 1 &&                                             \
-                         { discardoutput=$(git intbr-istracked 2>&1) &&                         \
-                             { echo Pulling \\'$(git intbr)\\' && git pull || exit $?;} ||      \
-                             { echo Intbr \\'$(git intbr)\\' not tracked, jump pull. ;} ;       \
-                         }                                                             &&       \
-                         echo Creating new ftr branch starting from \\'$(git intbr)\\' &&       \
+                         git intbr-pull || exit 1;                                              \
+                         echo Creating new ftr branch starting from \\'$(git intbr)\\';         \
                          git checkout -b ${br_ftr_pre}$1                                        \
                        ;}; f"
 
-  ftrbr-integrate = "!f() { br_start=$(git currbr) || { echo Cannot exec from detached-head >&2 && exit 1 ;}; \
-                            git chk-intbr || exit 1;                                                          \
-                            { discardoutput=$(git intbr-istracked 2>&1) &&                                    \
-                                { echo Pulling \\'$(git intbr)\\' && git pull || exit $?;} ||                 \
-                                { echo Intbr \\'$(git intbr)\\' not tracked, jump pull. ;} ;                  \
-                            }                                                              &&                 \
-                            echo Merging \\'$br_start\\' into \\'$(git intbr)\\' &&                           \
-                            git merge $(git config --get 4f.ftrbr-integrate-merge-opt) $br_start;             \
+  ftrbr-integrate = "!f() { br_start=$(git currbr) || { echo Cannot integrate >&2 && exit 1 ;};   \
+                            git intbr-pull || exit 1;                                             \
+                            echo Merging \\'$br_start\\' into \\'$(git intbr)\\';                 \
+                            git merge $(git config --get 4f.ftrbr-integrate-merge-opt) $br_start; \
                           }; f"
 
-  ftrbr-integrate-rebase   = "!f() { br_start=$(git currbr)  || { echo Cannot exec from detached-head >&2 && exit 1 ;}; \
-                                     git ftrbr-update-rebase || exit 1;                                                 \
-                                     git chk-intbr           || exit 1;                                                 \
-                                     echo Merging \\'$br_start\\' into \\'$(git intbr)\\';                              \
-                                     git merge $(git config --get 4f.ftrbr-integrate-rebase-opt) $br_start;             \
+  ftrbr-integrate-rebase   = "!f() { br_start=$(git currbr)  || { echo Cannot integrate >&2 && exit 1 ;};   \
+                                     git ftrbr-update-rebase || exit 1;                                     \
+                                     git chk-intbr           || exit 1;                                     \
+                                     echo Merging \\'$br_start\\' into \\'$(git intbr)\\';                  \
+                                     git merge $(git config --get 4f.ftrbr-integrate-rebase-opt) $br_start; \
                              }; f"
                               
-  ftrbr-update-merge = "!f() { br_start=$(git currbr) || { echo Cannot exec from detached-head >&2 && exit 1 ;}; \
-                               br_int=$(git intbr)    || exit 1;                                                 \
-                               { discardoutput=$(git intbr-istracked 2>&1)                                       \
-                                   && { git chk-intbr && echo Pulling \\'$(git intbr)\\' && git pull && git checkout $br_start || exit 1 ;} \
-                                   || { echo Intbr \\'$(git intbr)\\' not tracked, jump pull. ;} ;               \
-                               }                                                                &&               \
-                               echo Merging \\'$(git intbr)\\' into \\'$br_start\\'              &&              \
-                               git merge $(git config --get 4f.ftrbr-update-merge-opt) $(git intbr);             \
+  ftrbr-update-merge = "!f() { br_start=$(git currbr) || { echo Cannot update >&2 && exit 1 ;};      \
+                               git intbr-pull         || exit 1;                                     \
+                               git checkout $br_start || exit 1;                                     \
+                               echo Merging \\'$(git intbr)\\' into \\'$br_start\\';                 \
+                               git merge $(git config --get 4f.ftrbr-update-merge-opt) $(git intbr); \
                              }; f"
 
-  ftrbr-update-rebase   = "!f() { br_start=$(git currbr) || { echo Cannot exec from detached-head >&2 && exit 1 ;}; \
-                                  br_int=$(git intbr) || exit 1;                                                    \
-                                  { discardoutput=$(git intbr-istracked 2>&1)                                       \
-                                      && { git chk-intbr && echo Pulling \\'$(git intbr)\\' && git pull && git checkout $br_start || exit 1 ;} \
-                                      || { echo Intbr \\'$(git intbr)\\' not tracked, jump pull. ;} ;               \
-                                  }                                                                &&               \
-                                  echo Rebasing \\'$br_start\\' onto \\'$(git intbr)\\'            &&               \
-                                  git rebase $(git intbr) ;                                                         \
+  ftrbr-update-rebase   = "!f() { br_start=$(git currbr) || { echo Cannot update. >&2 && exit 1 ;}; \
+                                  git intbr-pull         || exit 1;                                 \
+                                  git checkout $br_start || exit 1;                                 \
+                                  echo Rebasing \\'$br_start\\' onto \\'$(git intbr)\\';            \
+                                  git rebase $(git intbr);                                          \
                                 }; f"
 
-  ftrbr-push = "!f() { br_int=$(git intbr)                         || exit 1; \
-                       discardoutput=$(git intbr-istracked 2>&1)   || { echo Intbr \\'$(git intbr)\\' not tracked, cannot push. >&2 && exit 1 ;}; \
-                       remote=$(git config --get branch.$(git intbr).remote); \
-                       git ftrbr-integrate                         || exit 1; \
-                       echo Pushing \\'$(git intbr)\\' to \\'$remote\\';      \
-                       git push $remote $(git intbr);                         \
+  ftrbr-push = "!f() { d=$(git intbr-istracked) || { echo Cannot push. >&2 && exit 1 ;}; \
+                       git ftrbr-integrate      || exit 1;                               \
+                       git intbr-push;                                                   \
                      }; f"
 
-  ftrbr-push-rebase = "!f() { br_int=$(git intbr)                         || exit 1; \
-                              discardoutput=$(git intbr-istracked 2>&1)   || { echo Intbr \\'$(git intbr)\\' not tracked, cannot push. >&2 && exit 1 ;}; \
-                              remote=$(git config --get branch.$(git intbr).remote); \
-                              git ftrbr-integrate-rebase                  || exit 1; \
-                              echo Pushing \\'$(git intbr)\\' to \\'$remote\\';      \
-                              git push $remote $(git intbr);                         \
+  ftrbr-push-rebase = "!f() { d=$(git intbr-istracked)   || { echo Cannot push. >&2 && exit 1 ;}; \
+                              git ftrbr-integrate-rebase || exit 1;                               \
+                              git intbr-push;                                                     \
                             }; f"
 
 #configurations

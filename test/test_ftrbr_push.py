@@ -29,7 +29,7 @@ def test_ftrbr_push_nointbr():
     so,se,rc = cloR.exe_cmd_succ('git intbr-unset')
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-push')
     nt.eq_(so, "")
-    nt.eq_(se, "Integration branch not set")
+    nt.eq_(se, "Integration branch not set\nCannot push.")
     nt.assert_not_in("Pulling 'master'", so)
     nt.assert_not_in("Merging", so)
 
@@ -41,7 +41,8 @@ def test_ftrbr_push_onintbr_local():
 
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-push')
     nt.eq_("", so)
-    nt.assert_in("Intbr 'another' not tracked, cannot push.", se)
+    nt.assert_in("Integration branch 'another' not tracked", se)
+    nt.assert_in("Cannot push.", se)
     nt.assert_not_in("Pushing", so)
 
 def test_ftrbr_push_intbr_local():
@@ -53,7 +54,8 @@ def test_ftrbr_push_intbr_local():
 
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-push')
     nt.eq_("", so)
-    nt.assert_in("Intbr 'another' not tracked, cannot push.", se)
+    nt.assert_in("Integration branch 'another' not tracked", se)
+    nt.assert_in("Cannot push.", se)
     nt.assert_not_in("Pushing", so)
 
 def test_ftrbr_push():
@@ -104,7 +106,7 @@ def test_ftrbr_push_rebase_nointbr():
     so,se,rc = cloR.exe_cmd_succ('git intbr-unset')
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-push-rebase')
     nt.eq_(so, "")
-    nt.eq_(se, "Integration branch not set")
+    nt.eq_(se, "Integration branch not set\nCannot push.")
     nt.assert_not_in("Pulling 'master'", so)
     nt.assert_not_in("Rebasing", so)
 
@@ -116,7 +118,8 @@ def test_ftrbr_push_rebase_onintbr_local():
 
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-push-rebase')
     nt.eq_("", so)
-    nt.assert_in("Intbr 'another' not tracked, cannot push.", se)
+    nt.assert_in("Integration branch 'another' not tracked", se)
+    nt.assert_in("Cannot push.", se)
     nt.assert_not_in("Pushing", so)
 
 def test_ftrbr_push_rebase_intbr_local():
@@ -128,7 +131,8 @@ def test_ftrbr_push_rebase_intbr_local():
 
     so,se,rc = cloR.exe_cmd_deny('git ftrbr-push-rebase')
     nt.eq_("", so)
-    nt.assert_in("Intbr 'another' not tracked, cannot push.", se)
+    nt.assert_in("Integration branch 'another' not tracked", se)
+    nt.assert_in("Cannot push.", se)
     nt.assert_not_in("Pushing", so)
 
 def test_ftrbr_push_rebase():
