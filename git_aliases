@@ -44,9 +44,9 @@
   chk-intbr   = "!git intbr 1>/dev/null && git checkout $(git intbr)"
   chk-back    = checkout @{-1}
 
-  currbr      = "!f() { currbr=$(git symbolic-ref -q HEAD) || { echo detached-head && exit 1 ;}; \
-                        currbr=$(git rev-parse --symbolic-full-name --abbrev-ref $currbr);       \
-                        echo $currbr;                                                            \
+  currbr      = "!f() { currbr=$(git symbolic-ref -q HEAD) || { echo detached-head >&2 && exit 1 ;}; \
+                        currbr=$(git rev-parse --symbolic-full-name --abbrev-ref $currbr);           \
+                        echo $currbr;                                                                \
                       }; f"
 
   #feature branch mgt
@@ -57,20 +57,20 @@
                          git checkout -b ${br_ftr_pre}$1                                        \
                        ;}; f"
 
-  ftrbr-integrate = "!f() { br_start=$(git currbr) || { echo Cannot integrate >&2 && exit 1 ;};   \
+  ftrbr-integrate = "!f() { br_start=$(git currbr) || { echo Cannot integrate. >&2 && exit 1 ;};  \
                             git intbr-pull || exit 1;                                             \
                             echo Merging \\'$br_start\\' into \\'$(git intbr)\\';                 \
                             git merge $(git config --get 4f.ftrbr-integrate-merge-opt) $br_start; \
                           }; f"
 
-  ftrbr-integrate-rebase   = "!f() { br_start=$(git currbr)  || { echo Cannot integrate >&2 && exit 1 ;};   \
+  ftrbr-integrate-rebase   = "!f() { br_start=$(git currbr)  || { echo Cannot integrate. >&2 && exit 1 ;};  \
                                      git ftrbr-update-rebase || exit 1;                                     \
                                      git chk-intbr           || exit 1;                                     \
                                      echo Merging \\'$br_start\\' into \\'$(git intbr)\\';                  \
                                      git merge $(git config --get 4f.ftrbr-integrate-rebase-opt) $br_start; \
                              }; f"
                               
-  ftrbr-update-merge = "!f() { br_start=$(git currbr) || { echo Cannot update >&2 && exit 1 ;};      \
+  ftrbr-update-merge = "!f() { br_start=$(git currbr) || { echo Cannot update. >&2 && exit 1 ;};     \
                                git intbr-pull         || exit 1;                                     \
                                git checkout $br_start || exit 1;                                     \
                                echo Merging \\'$(git intbr)\\' into \\'$br_start\\';                 \

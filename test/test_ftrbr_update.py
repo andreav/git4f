@@ -96,7 +96,7 @@ def test_ftrbr_pull_conflict_on_pullintbr():
     nt.assert_not_in("Merging 'master' into 'ftr/work'", so)
 
 
-def test_ftrbr_rebase_nointbr():
+def test_ftrbr_pull_rebase_nointbr():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
 
     so,se,rc = cloR.exe_cmd_succ('git intbr-unset')
@@ -104,7 +104,7 @@ def test_ftrbr_rebase_nointbr():
     nt.eq_(so, "")
     nt.eq_(se, "Integration branch not set")
 
-def test_ftrbr_rebase_uptodate():
+def test_ftrbr_pull_rebase_uptodate():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
 
     so,se,rc = cloR.exe_cmd_succ('git ftrbr-update-rebase')
@@ -112,7 +112,7 @@ def test_ftrbr_rebase_uptodate():
     nt.assert_in("Pulling 'master'",                 so)
     nt.assert_in("Rebasing 'ftr/work' onto 'master", so)
 
-def test_ftrbr_rebase_uptodate_local():
+def test_ftrbr_pull_rebase_uptodate_local():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
 
     so,se,rc = cloR.exe_cmd_succ('git checkout -b another master')
@@ -123,7 +123,7 @@ def test_ftrbr_rebase_uptodate_local():
     nt.assert_in("Intbr 'another' not tracked, jump pull.", so)
     nt.assert_in("Rebasing 'ftr/side_of_another' onto 'another'", so)
 
-def test_ftrbr_rebase_onintbr():
+def test_ftrbr_pull_rebase_onintbr():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
 
     so,se,rc = cloR.exe_cmd_succ('git checkout master')
@@ -133,7 +133,7 @@ def test_ftrbr_rebase_onintbr():
     nt.assert_in("Pulling 'master'",                so)
     nt.assert_in("Rebasing 'master' onto 'master'", so)
 
-def test_ftrbr_rebase():
+def test_ftrbr_pull_rebase():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
 
     utils.edit_commit(oriR, 'on origin', 'b.txt')
@@ -143,7 +143,7 @@ def test_ftrbr_rebase():
     nt.assert_in("Fast-forward",                      so)
     nt.assert_in("Rebasing 'ftr/work' onto 'master'", so)
 
-def test_ftrbr_rebase_conflict_on_mergeftrbr():
+def test_ftrbr_pull_rebase_conflict_on_mergeftrbr():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
 
     utils.edit_commit(oriR, 'on origin')
@@ -156,7 +156,7 @@ def test_ftrbr_rebase_conflict_on_mergeftrbr():
     nt.assert_in("Patch failed at 0001 modified file",          so)
     nt.assert_in('When you have resolved this problem run "git rebase --continue"', so)
 
-def test_ftrbr_rebase_conflict_on_pullintbr():
+def test_ftrbr_pull_rebase_conflict_on_pullintbr():
     oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_UPDATE)
     utils.edit_commit(oriR, 'on origin')
     so,se,rc = cloR.exe_cmd_succ('git checkout master')
@@ -168,4 +168,19 @@ def test_ftrbr_rebase_conflict_on_pullintbr():
     nt.assert_in("Automatic merge failed; fix conflicts and then commit the result.", so)
     nt.assert_not_in("Rebasing 'ftr/work' onto 'master'",                             so)
 
+def test_ftrbr_pull_detachedhead():
+    oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_PUSH)
+
+    so,se,rc = cloR.exe_cmd_succ('git checkout HEAD~1')
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-update-merge')
+    nt.eq_(se, "detached-head\nCannot update.")
+    nt.eq_(so, '')
+
+def test_ftrbr_pull_rebase_detachedhead():
+    oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_PUSH)
+
+    so,se,rc = cloR.exe_cmd_succ('git checkout HEAD~1')
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-update-rebase')
+    nt.eq_(se, "detached-head\nCannot update.")
+    nt.eq_(so, '')
 

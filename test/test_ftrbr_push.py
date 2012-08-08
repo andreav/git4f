@@ -181,4 +181,21 @@ def test_ftrbr_push_rebase_conflict_on_pullintbr():
     nt.assert_in("Automatic merge failed; fix conflicts and then commit the result.", so)
     nt.assert_not_in("Rebasing 'ftr/work' onto 'master'",                             so)
 
+def test_ftrbr_push_detachedhead():
+    oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_PUSH)
+
+    so,se,rc = cloR.exe_cmd_succ('git checkout HEAD~1')
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-push')
+    nt.eq_(se, "detached-head\nCannot integrate.")
+    nt.eq_(so, '')
+
+def test_ftrbr_push_rebase_detachedhead():
+    oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR_PUSH)
+
+    so,se,rc = cloR.exe_cmd_succ('git checkout HEAD~1')
+    so,se,rc = cloR.exe_cmd_deny('git ftrbr-push-rebase')
+    nt.eq_(se, "detached-head\nCannot integrate.")
+    nt.eq_(so, '')
+
+
 

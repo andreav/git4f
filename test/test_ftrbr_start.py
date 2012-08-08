@@ -129,4 +129,11 @@ def test_ftrbr_start_during_conflict():
     nt.assert_in("a.txt: needs merge", so)
     nt.assert_in("error: you need to resolve your current index first", se)
 
+def test_ftrbr_start_detachedhead():
+    oriR, cloR = utils.clone_makebr_edit_commit_repo(utils.DIR_REPO_CLONE_FTRBR)
 
+    so,se,rc = cloR.exe_cmd_succ('git checkout HEAD~1')
+    so,se,rc = cloR.exe_cmd_succ('git ftrbr-start aaa')
+    nt.assert_in("Pulling 'master'", so)
+    nt.assert_in("Creating new ftr branch", so)
+    nt.assert_in("Switched to a new branch 'ftr/aaa'", se)
